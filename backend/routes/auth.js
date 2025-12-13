@@ -1,59 +1,43 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../configs/db');
-const bcrypt = require('bcrypt');
+const db = require('../configs/db');
+const bcrypt = require('bcryptjs');
 
-// REGISTER
 router.post('/register', async (req, res) => {
+  const { name, email, password } = req.body;
+
+  const hashed = await bcrypt.hash(password, 10);
+
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password required' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await pool.query(
-      'INSERT INTO users (email, password) VALUES (?, ?)',
-      [email, hashedPassword]
+    await db.query(
+      'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
+      [name, email, hashed]
     );
-
-    res.status(201).json({ message: 'User registered successfully' });
-
+    res.json({ message: 'User registered successfully' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Registration failed' });
+    res.status(400).json({ error: 'User already exists' });
   }
 });
 
-// LOGIN
 router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    const [rows] = await pool.query(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
-    );
+  const rows = await db.query(
+    'SELECT * FROM users WHERE email = ?',
+    [email]
+  );
 
-    if (rows.length === 0) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    const user = rows[0];
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    res.json({ message: 'Login successful' });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Login failed' });
+  if (!rows.length) {
+    return res.status(401).json({ error: 'Invalid credentials' });
   }
+
+  const valid = await bcrypt.compare(password, rows[0].password);
+
+  if (!valid) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+
+  res.json({ message: 'Login successful' });
 });
 
 module.exports = router;
