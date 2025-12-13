@@ -10,3 +10,14 @@ const pool = mariadb.createPool({
 });
 
 module.exports = pool;
+
+(async () => {
+  try {
+    const conn = await pool.getConnection();
+    console.log("Database connected successfully");
+    conn.release();
+  } catch (err) {
+    console.error("Database connection failed:", err.message);
+  }
+})();
+
