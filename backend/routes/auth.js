@@ -6,13 +6,14 @@ const bcrypt = require('bcryptjs');
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
 
-  const hashed = await bcrypt.hash(password, 10);
-
   try {
+    const hashed = await bcrypt.hash(password, 10);
+
     await db.query(
       'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
       [name, email, hashed]
     );
+
     res.json({ message: 'User registered successfully' });
   } catch (err) {
     res.status(400).json({ error: 'User already exists' });
@@ -38,11 +39,6 @@ router.post('/login', async (req, res) => {
   }
 
   res.json({ message: 'Login successful' });
-});
-
-
-router.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
 });
 
 module.exports = router;

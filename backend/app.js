@@ -1,19 +1,15 @@
 const express = require('express');
 const cors = require('cors');
+
 const authRoutes = require('./routes/auth');
+const healthRoutes = require('./routes/health');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/auth', authRoutes);
-
-/* app.get('/health', (req, res) => {
-  res.status(200).send('OK');
-}); */
-
-const healthRoute = require('./routes/health');
-app.use('/', healthRoute);
+app.use('/api', authRoutes);   // /api/register, /api/login
+app.use('/', healthRoutes);    // /health
 
 module.exports = app;
