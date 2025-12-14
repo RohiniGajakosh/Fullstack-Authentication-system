@@ -9,8 +9,11 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 
-app.get('/health', (req, res) => {
+/* app.get('/health', (req, res) => {
   res.status(200).send('OK');
-});
+}); */
+
+const healthRoute = require('./routes/health');
+app.use('/', healthRoute);
 
 module.exports = app;

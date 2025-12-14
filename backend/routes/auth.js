@@ -40,4 +40,9 @@ router.post('/login', async (req, res) => {
   res.json({ message: 'Login successful' });
 });
 
+
+router.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
+
 module.exports = router;
