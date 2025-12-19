@@ -1,15 +1,17 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
 
-const authRoutes = require('./routes/auth');
-const healthRoutes = require('./routes/health');
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.use('/api', authRoutes);   // /api/register, /api/login
-app.use('/', healthRoutes);    // /health
+app.use("/api", authRoutes);
+
+app.get("/health", (req, res) => {
+  res.json({ status: "UP" });
+});
 
 module.exports = app;

@@ -1,44 +1,94 @@
-const express = require('express');
-const router = express.Router();
-const db = require('../configs/db');
-const bcrypt = require('bcryptjs');
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const pool = require("../configs/db");
 
-router.post('/register', async (req, res) => {
+const router = express.Router();
+
+/**
+ * REGISTER
+ */
+router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
-  try {
-    const hashed = await bcrypt.hash(password, 10);
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
 
-    await db.query(
-      'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-      [name, email, hashed]
+  try {
+    const conn = await pool.getConnection();
+
+    // Check if user exists
+    const existing = await conn.query(
+      "SELECT id FROM users WHERE email = ?",
+      [email]
     );
 
-    res.json({ message: 'User registered successfully' });
+    if (existing.length > 0) {
+      conn.release();
+      return res.status(409).json({ error: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await conn.query(
+      "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+      [name, email, hashedPassword]
+    );
+
+    conn.release();
+    res.status(201).json({ message: "User registered successfully" });
+
   } catch (err) {
-    res.status(400).json({ error: 'Error' });
+    console.error("Register error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-router.post('/login', async (req, res) => {
+/**
+ * LOGIN
+ */
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const rows = await db.query(
-    'SELECT * FROM users WHERE email = ?',
-    [email]
-  );
-
-  if (!rows.length) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password required" });
   }
 
-  const valid = await bcrypt.compare(password, rows[0].password);
+  try {
+    const conn = await pool.getConnection();
 
-  if (!valid) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    const rows = await conn.query(
+      "SELECT id, name, password FROM users WHERE email = ?",
+      [email]
+    );
+
+    conn.release();
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const user = rows[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // No JWT yet – keep simple
+    res.json({
+      message: "Login successful",
+      user: {
+        id: user.id,
+        name: user.name,
+        email
+      }
+    });
+
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ error: "Server error" });
   }
-
-  res.json({ message: 'Login successful' });
 });
 
 module.exports = router;
