@@ -1,17 +1,14 @@
 const express = require("express");
 const cors = require("cors");
-
+const bodyParser = require("body-parser");
 const authRoutes = require("./routes/auth");
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
+// Routes
 app.use("/api", authRoutes);
-
-app.get("/health", (req, res) => {
-  res.json({ status: "UP" });
-});
 
 module.exports = app;

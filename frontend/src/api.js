@@ -1,19 +1,7 @@
-const API_BASE = "http://application-LB-XXXX.ap-south-1.elb.amazonaws.com/api";
+import axios from "axios";
 
-export async function registerUser(data) {
-  const res = await fetch(`${API_BASE}/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
+const api = axios.create({
+  baseURL: "http://application-LB-1279897487.ap-south-1.elb.amazonaws.com/api",
+});
 
-export async function loginUser(data) {
-  const res = await fetch(`${API_BASE}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
+export default api;

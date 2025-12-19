@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "./api";
+import api from "./api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -10,23 +10,40 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
 
-    const res = await loginUser({ email, password });
+    try {
+      const res = await api.post("/login", { email, password });
+      console.log(res.data);
 
-    if (res.error) {
-      setError(res.error);
-    } else {
+      // ✅ Redirect after success
       navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.error || "Login failed");
     }
   };
 
   return (
     <form onSubmit={handleLogin}>
       <h2>Login</h2>
-      <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
-      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
+
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+
       <button type="submit">Login</button>
-      {error && <p>{error}</p>}
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </form>
   );
 }
