@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -16,14 +16,12 @@ export default function Login() {
         { email, password }
       );
 
-      // ✅ THIS IS WHERE YOUR LINE GOES
       if (res.data.message === "Login successful") {
+        alert("Login successful");
         navigate("/dashboard");
       }
     } catch (err) {
-      alert(
-        err.response?.data?.error || "Login failed"
-      );
+      alert(err.response?.data?.error || "Login failed");
     }
   };
 
