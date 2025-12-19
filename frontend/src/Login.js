@@ -1,27 +1,32 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginUser } from "./api";
 
 export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [msg, setMsg] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const submit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const res = await loginUser(form);
-    setMsg(res.message || res.error);
+
+    const res = await loginUser({ email, password });
+
+    if (res.error) {
+      setError(res.error);
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   return (
-    <div>
+    <form onSubmit={handleLogin}>
       <h2>Login</h2>
-      <form onSubmit={submit}>
-        <input placeholder="Email"
-          onChange={e => setForm({ ...form, email: e.target.value })} />
-        <input type="password" placeholder="Password"
-          onChange={e => setForm({ ...form, password: e.target.value })} />
-        <button type="submit">Login</button>
-      </form>
-      <p>{msg}</p>
-    </div>
+      <input placeholder="Email" onChange={e => setEmail(e.target.value)} />
+      <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} />
+      <button type="submit">Login</button>
+      {error && <p>{error}</p>}
+    </form>
   );
 }
